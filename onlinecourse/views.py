@@ -104,6 +104,26 @@ def enroll(request, course_id):
 
 
 # <HINT> Create a submit view to create an exam submission record for a course enrollment,
+
+from django.shortcuts import render, redirect
+from .models import Course, Enrollment, Submission, Choice
+
+def submit(request, course_id):
+    if request.method == 'POST':
+        course = get_object_or_404(Course, pk=course_id)
+        user = request.user
+        enrollment = Enrollment.objects.get(user=user, course=course)  # Assuming there's only one enrollment per user per course
+
+        submission = Submission.objects.create(enrollment=enrollment)
+
+        selected_choice_ids = request.POST.getlist('selected_choices')  # Assuming your exam form has input elements with the name 'selected_choices'
+        selected_choices = Choice.objects.filter(id__in=selected_choice_ids)
+
+        submission.choices.set(selected_choices)
+
+        submission.save()
+
+        return redirect('show_exam_result', course_id=course_id, submission_id=submission.id)
 # you may implement it based on following logic:
          # Get user and course object, then get the associated enrollment object created when the user enrolled the course
          # Create a submission object referring to the enrollment
@@ -114,6 +134,13 @@ def enroll(request, course_id):
 
 
 # <HINT> A example method to collect the selected choices from the exam form from the request object
+def extract_answers(request):
+    submitted_answers = []
+    for key, value in request.POST.items():
+        if key.startswith('choice'):
+            choice_id = int(value)
+            submitted_answers.append(choice_id)
+    return submitted_answers
 #def extract_answers(request):
 #    submitted_anwsers = []
 #    for key in request.POST:
@@ -124,7 +151,32 @@ def enroll(request, course_id):
 #    return submitted_anwsers
 
 
+
 # <HINT> Create an exam result view to check if learner passed exam and show their question results and result for each question,
+def show_exam_result(request, course_id, submission_id):
+    course = get_object_or_404(Course, pk=course_id)
+    submission = get_object_or_404(Submission, pk=submission_id)
+
+    selected_choice_ids = submission.choices.all().values_list('id', flat=True)
+    total_questions = course.question_set.count()
+    correct_answers = 0
+
+    for question in course.question_set.all():
+        if question.is_get_score(selected_choice_ids):
+            correct_answers += 1
+
+    # Calculate the total score as a percentage
+    total_score = (correct_answers / total_questions) * 100
+
+    context = {
+        'course': course,
+        'submission': submission,
+        'total_questions': total_questions,
+        'correct_answers': correct_answers,
+        'total_score': total_score,
+    }
+
+    return render(request, 'onlinecourse/exam_result.html', context)
 # you may implement it based on the following logic:
         # Get course and submission based on their ids
         # Get the selected choice ids from the submission record

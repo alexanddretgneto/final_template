@@ -1,0 +1,5 @@
+<form method="post" action="{% url 'onlinecourse:submit' course.id %}">
+    {% csrf_token %}
+    <!-- ... campos do formulário ... -->
+    <input type="submit" value="Submit Exam">
+</form>
