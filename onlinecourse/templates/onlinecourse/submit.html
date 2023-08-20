@@ -1,5 +1,20 @@
 <form method="post" action="{% url 'onlinecourse:submit' course.id %}">
     {% csrf_token %}
-    <!-- ... campos do formulário ... -->
+   
+    <form method="post" action="{% url 'onlinecourse:submit' course.id %}">
+        {% csrf_token %}
+        {% for question in all_questions %}
+        <div class="question">
+            <h4>{{ question.texto_pergunta }}</h4>
+            {% for choice in question.choice_set.all %}
+            <label>
+                <input type="checkbox" name="selected_choices" value="{{ question.id }}_{{ choice.id }}">
+                {{ choice.texto_escolha }}
+            </label><br>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Submit Exam</button>
+    </form>
     <input type="submit" value="Submit Exam">
 </form>

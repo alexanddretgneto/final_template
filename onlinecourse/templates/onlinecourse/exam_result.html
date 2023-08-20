@@ -2,4 +2,19 @@
 <p>Total Questions: {{ total_questions }}</p>
 <p>Correct Answers: {{ correct_answers }}</p>
 <p>Total Score: {{ total_score }}%</p>
-<!-- ... loop para mostrar detalhes das perguntas ... -->
+
+<div class="questions-details">
+    <h2>Questions Details:</h2>
+    {% for question in questions %}
+    <div class="question">
+        <h3>{{ question.texto_pergunta }}</h3>
+        <p>Your Answer: {{ question.user_answer }}</p>
+        {% if question.is_correct %}
+            <p class="text-success">Correct</p>
+        {% else %}
+            <p class="text-danger">Incorrect</p>
+            <p>Correct Answer: {{ question.correct_answer }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
